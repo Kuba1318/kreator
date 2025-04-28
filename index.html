@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Konfigurator Elektroniki</title>
+  <title>Konfigurator</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; background: #f0f8ff; }
     .container { background: white; padding: 30px; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 0 15px #ddd; }
@@ -30,10 +30,18 @@
     #backBtn { background: #3498db; margin-bottom: 20px; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    window.jsPDF = window.jspdf.jsPDF; // Dodaj tę linię!
+  </script>
+  <script src="Roboto-Regular-normal.js"></script>
+  <script src="configurator.js"></script>
+  
+  
+  
 </head>
 <body>
   <div class="container">
-    <h1>Konfigurator Instalacji Elektronicznej</h1>
+    <h1>Konfigurator</h1>
     
     <!-- Etap 1: Wybór etapu, serii, ramki i pomieszczeń -->
     <div id="step1">
@@ -50,6 +58,8 @@
             <option value="Seria A">Seria A</option>
             <option value="Seria B">Seria B</option>
             <option value="Seria C">Seria C</option>
+            
+
           </select>
         </label>
         <label style="margin-left:20px;">
@@ -73,10 +83,29 @@
       <h2>Wybierz komponenty dla pomieszczeń</h2>
       <div id="roomsContainer"></div>
       <div id="summary"></div>
-      <button id="downloadBtn" onclick="downloadConfig()" disabled>Pobierz PDF</button>
+      <button id="nextBtn" onclick="goToServices()" disabled>Dalej</button>
       <button id="resetBtn" onclick="resetConfigurator()">Resetuj konfigurator</button>
     </div>
+    <!-- Usługi dodatkowe -->
+<div id="stepServices" class="hidden">
+  <h2>Wybierz usługi dodatkowe</h2>
+  <form id="servicesForm">
+    <label><input type="checkbox" name="services" value="Montaż"> Montaż</label><br>
+    <label><input type="checkbox" name="services" value="Konfiguracja"> Konfiguracja</label><br>
+    <label><input type="checkbox" name="services" value="Szkolenie"> Szkolenie</label><br>
+  </form>
+  <button onclick="goToSummary()">Dalej</button>
+</div>
+
+<!-- Ekran końcowy -->
+<div id="stepEnd" class="hidden">
+  <h2>Podsumowanie końcowe</h2>
+  <div id="finalSummary"></div>
+  <button onclick="resetConfigurator()">Zakończ i wyczyść konfigurator</button>
+  <button id="finalPdfBtn" onclick="downloadFinalPDF()">Pobierz PDF z podsumowaniem</button>
+  <button onclick="goToStep1()">Powrót do konfiguratora</button>
+</div>
+
   </div>
-  <script src="configurator.js"></script>
 </body>
 </html>

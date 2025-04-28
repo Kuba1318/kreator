@@ -43,8 +43,9 @@ const config = {
 let selectedStage = '';
 let selectedSeries = '';
 let selectedFrameType = '';
-let rooms = []; // [{id, type}]
-let roomsComponents = {}; // {roomId: [{componentObj, qty}, ...]}
+let rooms = [];
+let roomsComponents = {};
+let selectedServices = [];
 
 // --- ZAPIS I ODCZYT Z LOCALSTORAGE ---
 
@@ -54,7 +55,8 @@ function saveToLocalStorage() {
     selectedSeries,
     selectedFrameType,
     rooms,
-    roomsComponents
+    roomsComponents,
+    selectedServices
   };
   localStorage.setItem('configuratorData', JSON.stringify(data));
 }
@@ -69,6 +71,7 @@ function loadFromLocalStorage() {
       selectedFrameType = parsed.selectedFrameType || '';
       rooms = parsed.rooms || [];
       roomsComponents = parsed.roomsComponents || {};
+      selectedServices = parsed.selectedServices || [];
     } catch (e) {
       localStorage.removeItem('configuratorData');
     }
@@ -88,9 +91,7 @@ function selectStage(stage) {
 
 function selectSeries(val) {
   selectedSeries = val;
-  // Po zmianie serii, zaktualizuj typy ramek
   updateFrameTypeOptions();
-  // Jeśli wybrany typ ramki nie pasuje do nowej serii, usuń wybór
   if (!config.seriesFrameTypes[selectedSeries] || config.seriesFrameTypes[selectedSeries].indexOf(selectedFrameType) === -1) {
     selectedFrameType = '';
     document.getElementById('frameTypeSelect').value = '';
@@ -212,7 +213,6 @@ function toggleComponents(roomId) {
         </label>
       `;
     }).join('');
-    
   }
   list.classList.toggle('hidden');
   document.getElementById(`room-section-${roomId}`).classList.toggle('active');
@@ -262,7 +262,7 @@ function findQtyInput(roomId, componentName) {
   return null;
 }
 
-// --- PODSUMOWANIE I PLIK ---
+// --- PODSUMOWANIE I PRZYCISK DALEJ ---
 
 function updateSummary() {
   const summaryDiv = document.getElementById('summary');
@@ -287,78 +287,57 @@ function updateSummary() {
   });
   html += `<div style="margin:20px 0 0 20px;"><b>SUMA: ${total} zł</b></div>`;
   summaryDiv.innerHTML = html;
-  document.getElementById('downloadBtn').disabled = !Object.values(roomsComponents).some(arr => arr.length > 0);
+  document.getElementById('nextBtn').disabled = !Object.values(roomsComponents).some(arr => arr.length > 0);
 }
 
-function downloadConfig() {
-  const doc = new jspdf.jsPDF();
-  doc.setFont('helvetica'); // Helvetica obsługuje polskie znaki
+// --- USŁUGI DODATKOWE I EKRAN KOŃCOWY ---
 
-  let yPos = 20;
-  
-  // Nagłówek
-  doc.setFontSize(18);
-  doc.text("Konfiguracja instalacji elektronicznej", 10, 15);
-  
-  // Informacje podstawowe
-  doc.setFontSize(12);
-  doc.text(`Etap budowy: ${selectedStage}`, 10, yPos);
-  doc.text(`Seria: ${selectedSeries}`, 10, yPos + 8);
-  doc.text(`Typ ramki: ${selectedFrameType}`, 10, yPos + 16);
-  yPos += 30;
+function goToServices() {
+  const wantsServices = confirm("Czy chcesz wybrać usługi dodatkowe?");
+  document.getElementById('step2').classList.add('hidden');
+  if (wantsServices) {
+    document.getElementById('stepServices').classList.remove('hidden');
+  } else {
+    goToSummary();
+  }
+}
 
-  // Lista pomieszczeń
-  rooms.forEach(room => {
-    if(yPos > 280) {
-      doc.addPage();
-      yPos = 20;
-    }
-    
-    doc.setFontSize(14);
-    doc.text(`Pomieszczenie: ${room.type}`, 10, yPos);
-    yPos += 10;
-    
-    let roomTotal = 0;
-    const components = roomsComponents[room.id] || [];
-    
-    components.forEach(comp => {
-      const line = `${comp.component.name} - ${comp.qty} szt. x ${comp.component.price[selectedStage]} zł = ${comp.qty * comp.component.price[selectedStage]} zł`;
-      doc.text(line, 15, yPos);
-      roomTotal += comp.qty * comp.component.price[selectedStage];
-      yPos += 8;
+function goToSummary() {
+  selectedServices = [];
+  if (document.getElementById('servicesForm')) {
+    document.querySelectorAll('#servicesForm input[type=checkbox]:checked').forEach(cb => {
+      selectedServices.push(cb.value);
     });
-    
-    doc.setFont(undefined, 'bold');
-    doc.text(`Suma za pomieszczenie: ${roomTotal} zł`, 15, yPos);
-    doc.setFont(undefined, 'normal');
-    yPos += 15;
-  });
+  }
 
-  // Suma całkowita
-  const total = Object.values(roomsComponents)
-    .flat()
-    .reduce((sum, comp) => sum + (comp.qty * comp.component.price[selectedStage]), 0);
-  
-  doc.setFontSize(16);
-  doc.text(`SUMA CAŁKOWITA: ${total} zł`, 10, yPos + 10);
-
-  // Zapisz plik
-  doc.save(`konfiguracja-${Date.now()}.pdf`);
+  document.getElementById('stepServices').classList.add('hidden');
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('stepEnd').classList.remove('hidden');
+  renderFinalSummary();
+  saveToLocalStorage();
 }
 
+function renderFinalSummary() {
+  let html = `<h4>Wybrane usługi dodatkowe:</h4>`;
+  if (selectedServices.length > 0) {
+    html += `<ul>${selectedServices.map(s => `<li>${s}</li>`).join('')}</ul>`;
+  } else {
+    html += `<p>Brak usług dodatkowych.</p>`;
+  }
+  html += document.getElementById('summary').innerHTML;
+  document.getElementById('finalSummary').innerHTML = html;
+}
 
 // --- ODTWORZENIE STANU PO ZAŁADOWANIU STRONY ---
 
 window.onload = function() {
   loadFromLocalStorage();
 
-  // Odtwórz etap budowy
   if (selectedStage) {
     document.querySelectorAll('.stage-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.stage === selectedStage);
     });
   }
-  // Odtwórz wybór serii i ramki
   if (selectedSeries) {
     document.getElementById('seriesSelect').value = selectedSeries;
     updateFrameTypeOptions();
@@ -366,7 +345,6 @@ window.onload = function() {
   if (selectedFrameType) {
     document.getElementById('frameTypeSelect').value = selectedFrameType;
   }
-  // Odtwórz listę pomieszczeń
   if (rooms && rooms.length > 0) {
     const roomList = document.getElementById('roomList');
     roomList.innerHTML = '';
@@ -386,7 +364,6 @@ window.onload = function() {
   }
   validateStep1();
 
-  // Jeśli użytkownik był w kroku 2, odtwórz widok komponentów i podsumowania
   if (document.getElementById('step2') && rooms && rooms.length > 0 && Object.keys(roomsComponents).length > 0) {
     renderRoomsForComponents();
     document.getElementById('step1').classList.add('hidden');
@@ -400,4 +377,75 @@ window.onload = function() {
 function resetConfigurator() {
   localStorage.removeItem('configuratorData');
   location.reload();
+}
+
+// --- GENEROWANIE PDF Z POLSKIMI ZNAKAMI ---
+
+function downloadFinalPDF() {
+  if (typeof jsPDF === 'undefined') {
+    alert('jsPDF nie został załadowany!');
+    return;
+  }
+  var doc = new jsPDF();
+  // NIE używaj addFileToVFS ani addFont – robi to plik Roboto-Regular-normal.js automatycznie!
+  doc.setFont('Roboto-Regular-normal.ttf', 'Roboto-Regular', 'normal'); // dokładnie jak w pliku fontu!
+  doc.setFontSize(14);
+
+  let y = 15;
+  doc.text("Podsumowanie konfiguracji", 10, y);
+  y += 10;
+  doc.setFontSize(12);
+  doc.text(`Etap budowy: ${selectedStage}`, 10, y);
+  y += 8;
+  doc.text(`Seria: ${selectedSeries}`, 10, y);
+  y += 8;
+  doc.text(`Typ ramki: ${selectedFrameType}`, 10, y);
+  y += 12;
+
+  // Usługi dodatkowe
+  if (typeof selectedServices !== 'undefined') {
+    doc.setFont(undefined, 'bold');
+    doc.text("Usługi dodatkowe:", 10, y);
+    doc.setFont(undefined, 'normal');
+    y += 7;
+    if (selectedServices.length > 0) {
+      selectedServices.forEach(service => {
+        doc.text(`- ${service}`, 14, y);
+        y += 7;
+      });
+    } else {
+      doc.text("Brak usług dodatkowych.", 14, y);
+      y += 7;
+    }
+    y += 5;
+  }
+
+  // Pomieszczenia i komponenty
+  let total = 0;
+  rooms.forEach(room => {
+    const comps = roomsComponents[room.id] || [];
+    if (comps.length) {
+      if (y > 260) { doc.addPage(); y = 15; }
+      doc.setFont(undefined, 'bold');
+      doc.text(`${room.type.charAt(0).toUpperCase() + room.type.slice(1)}:`, 10, y);
+      doc.setFont(undefined, 'normal');
+      y += 7;
+      comps.forEach(c => {
+        const sum = c.qty * c.component.price[selectedStage];
+        doc.text(
+          `${c.component.name} – ${c.qty} szt. x ${c.component.price[selectedStage]} zł = ${sum} zł`,
+          14, y
+        );
+        y += 7;
+        total += sum;
+        if (y > 280) { doc.addPage(); y = 15; }
+      });
+      y += 3;
+    }
+  });
+
+  doc.setFont(undefined, 'bold');
+  doc.text(`SUMA: ${total} zł`, 10, y + 5);
+
+  doc.save(`podsumowanie-konfiguracji.pdf`);
 }
