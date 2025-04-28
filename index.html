@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Konfigurator Elektroniki</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f0f8ff; }
+    .container { background: white; padding: 30px; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 0 15px #ddd; }
+    h1 { text-align: center; color: #2c3e50; }
+    .stage-buttons { margin: 20px 0; text-align: center; }
+    .stage-btn { 
+      padding: 12px 25px; margin: 0 10px; border: none; border-radius: 25px; 
+      cursor: pointer; background: #3498db; color: white; 
+    }
+    .stage-btn.active { background: #2980b9; }
+    #globalOptions { margin-bottom: 20px; text-align: center; }
+    #roomControls { margin: 20px 0; }
+    #roomList { margin: 10px 0 20px 0; }
+    .room-item { display: flex; align-items: center; margin-bottom: 8px; }
+    .room-item select { margin-right: 10px; }
+    .room-item button { background: #e74c3c; margin-left: 10px; }
+    #proceedBtn { margin: 20px 0; }
+    .room-section { border: 2px solid #3498db; padding: 15px; margin: 15px 0; border-radius: 10px; cursor: pointer; background: #f7fbff; }
+    .room-section.active { background: #eaf6ff; }
+    .components-list { margin-top: 10px; }
+    button { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:disabled { background: #95a5a6; }
+    .hidden { display: none; }
+    #resetBtn { background: #e74c3c; margin-top: 20px; }
+    #backBtn { background: #3498db; margin-bottom: 20px; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Konfigurator Instalacji Elektronicznej</h1>
+    
+    <!-- Etap 1: Wybór etapu, serii, ramki i pomieszczeń -->
+    <div id="step1">
+      <div class="stage-buttons">
+        <button class="stage-btn" data-stage="budowa" onclick="selectStage('budowa')">Budowa</button>
+        <button class="stage-btn" data-stage="deweloperski" onclick="selectStage('deweloperski')">Stan Deweloperski</button>
+        <button class="stage-btn" data-stage="wykończone" onclick="selectStage('wykończone')">Mieszkanie Wykończone</button>
+      </div>
+      <div id="globalOptions">
+        <label style="margin-right:10px;">
+          Wybierz serię:
+          <select id="seriesSelect" onchange="selectSeries(this.value)">
+            <option value="">-- wybierz serię --</option>
+            <option value="Seria A">Seria A</option>
+            <option value="Seria B">Seria B</option>
+            <option value="Seria C">Seria C</option>
+          </select>
+        </label>
+        <label style="margin-left:20px;">
+          Wybierz typ ramki:
+          <select id="frameTypeSelect" onchange="selectFrameType(this.value)">
+            <option value="">-- wybierz typ ramki --</option>
+            <!-- Opcje generowane dynamicznie -->
+          </select>
+        </label>
+      </div>
+      <div id="roomControls">
+        <button onclick="addRoom()">➕ Dodaj Pomieszczenie</button>
+      </div>
+      <div id="roomList"></div>
+      <button id="proceedBtn" onclick="goToStep2()" disabled>Przejdź do wyboru komponentów</button>
+    </div>
+
+    <!-- Etap 2: Wybór komponentów -->
+    <div id="step2" class="hidden">
+      <button id="backBtn" onclick="goToStep1()">⬅ Powrót do dodawania pomieszczeń</button>
+      <h2>Wybierz komponenty dla pomieszczeń</h2>
+      <div id="roomsContainer"></div>
+      <div id="summary"></div>
+      <button id="downloadBtn" onclick="downloadConfig()" disabled>Pobierz PDF</button>
+      <button id="resetBtn" onclick="resetConfigurator()">Resetuj konfigurator</button>
+    </div>
+  </div>
+  <script src="configurator.js"></script>
+</body>
+</html>
