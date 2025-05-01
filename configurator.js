@@ -177,7 +177,8 @@ function goToStep2() {
 function goToStep1() {
   document.getElementById('step2').classList.add('hidden');
   document.getElementById('step1').classList.remove('hidden');
-  
+  document.getElementById('stepEnd').classList.add('hidden'); // Ukryj podsumowanie
+
   saveToLocalStorage();
 }
 
