@@ -6,7 +6,7 @@ const config = {
     'Seria B': ['Ramka 2', 'Ramka 3'],
     'Seria C': ['Ramka 1', 'Ramka 3']
   },
-  rooms: ['salon', 'sypialnia', 'kuchnia', 'łazienka', 'garaż', 'biuro'],
+  rooms: ['salon', 'sypialnia', 'kuchnia', 'łazienka', 'korytarz', 'jadalnia'],
   components: {
     salon: [
       { name: 'Gniazdko elektryczne', price: { budowa: 20, deweloperski: 25, wykończone: 30 } },
@@ -28,16 +28,24 @@ const config = {
       { name: 'Ogrzewanie podłogowe', price: { budowa: 500, deweloperski: 560, wykończone: 620 } },
       { name: 'Lustro z LED', price: { budowa: 180, deweloperski: 200, wykończone: 230 } }
     ],
-    garaż: [
+    korytarz: [
       { name: 'Lampka warsztatowa', price: { budowa: 70, deweloperski: 80, wykończone: 95 } },
       { name: 'Gniazdko przemysłowe', price: { budowa: 60, deweloperski: 70, wykończone: 80 } }
     ],
-    biuro: [
+    jadalnia: [
       { name: 'Listwa zasilająca', price: { budowa: 35, deweloperski: 40, wykończone: 48 } },
       { name: 'Router', price: { budowa: 120, deweloperski: 140, wykończone: 160 } },
       { name: 'Kamera IP', price: { budowa: 250, deweloperski: 280, wykończone: 320 } }
     ]
   }
+};
+const roomImages = {
+  salon: 'images/living_room.jpeg',
+  sypialnia: 'images/bedroom.jpeg',
+  łazienka: 'images/bathroom.jpg',
+  korytarz: 'images/corridor.jpg',
+  jadalnia: 'images/dining.jpeg' ,
+  kuchnia: 'images/kitchen.jpg' ,
 };
 
 let selectedStage = '';
@@ -162,12 +170,14 @@ function goToStep2() {
   document.getElementById('step1').classList.add('hidden');
   document.getElementById('step2').classList.remove('hidden');
   renderRoomsForComponents();
+  
   saveToLocalStorage();
 }
 
 function goToStep1() {
   document.getElementById('step2').classList.add('hidden');
   document.getElementById('step1').classList.remove('hidden');
+  
   saveToLocalStorage();
 }
 
@@ -175,23 +185,109 @@ function renderRoomsForComponents() {
   const container = document.getElementById('roomsContainer');
   container.innerHTML = '';
   rooms.forEach(room => {
+    if (!room.type) return;
     const section = document.createElement('div');
-    section.className = 'room-section';
+    section.className = 'room-image-section';
     section.id = `room-section-${room.id}`;
-    section.onclick = () => toggleComponents(room.id);
-    section.innerHTML = `
-      <b>${room.type.charAt(0).toUpperCase() + room.type.slice(1)}</b>
-      <div id="components-list-${room.id}" class="components-list hidden"></div>
-    `;
+
+    const img = document.createElement('img');
+    img.src = roomImages[room.type] || 'images/default.jpg';
+    img.alt = room.type;
+    img.className = 'room-photo';
+    img.onclick = function(e) {
+      e.stopPropagation();
+      openRoomComponentSelect(room.id);
+    };
+
+    const label = document.createElement('div');
+    label.innerHTML = `<b>${room.type.charAt(0).toUpperCase() + room.type.slice(1)}</b>`;
+    label.className = 'room-label';
+
+    section.appendChild(img);
+    section.appendChild(label);
     container.appendChild(section);
   });
   updateSummary();
 }
 
+function openRoomComponentSelect(roomId) {
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('roomComponentSelect').classList.remove('hidden');
+
+  const room = rooms.find(r => r.id === roomId);
+  document.getElementById('roomComponentHeader').innerText =
+    `Wybierz elementy dla: ${room.type.charAt(0).toUpperCase() + room.type.slice(1)}`;
+
+  // Renderuj listę komponentów
+  const compListDiv = document.getElementById('roomComponentsList');
+  compListDiv.innerHTML = config.components[room.type].map(comp => {
+    let qty = 0;
+    if (roomsComponents[roomId]) {
+      const found = roomsComponents[roomId].find(c => c.component.name === comp.name);
+      if (found) qty = found.qty;
+    }
+    return `
+      <label style="display:block; margin-bottom:8px;">
+        <input type="checkbox" onchange="selectComponentFromRoom(${roomId}, '${comp.name}', this.checked)" ${qty > 0 ? 'checked' : ''}>
+        ${comp.name} <span style="color:#888;">(${comp.price[selectedStage]} zł/szt.)</span>
+        <input type="number" min="1" max="99" value="${qty > 0 ? qty : 1}"
+          style="width:50px; margin-left:10px;" 
+          ${qty > 0 ? '' : 'disabled'}
+          onchange="changeQtyFromRoom(${roomId}, '${comp.name}', this.value)">
+        szt.
+      </label>
+    `;
+  }).join('');
+}
+function selectComponentFromRoom(roomId, componentName, checked) {
+  if (!roomsComponents[roomId]) roomsComponents[roomId] = [];
+  const room = rooms.find(r => r.id === roomId);
+  const compObj = config.components[room.type].find(c => c.name === componentName);
+  let compArr = roomsComponents[roomId];
+  let found = compArr.find(c => c.component.name === componentName);
+
+  // Znajdź input liczby
+  const compListDiv = document.getElementById('roomComponentsList');
+  const labels = compListDiv.querySelectorAll('label');
+  let inputQty = null;
+  for (let label of labels) {
+    if (label.textContent.includes(componentName)) {
+      inputQty = label.querySelector('input[type="number"]');
+      break;
+    }
+  }
+
+  if (checked) {
+    if (!found) {
+      compArr.push({ component: compObj, qty: parseInt(inputQty.value) || 1 });
+    }
+    inputQty.disabled = false;
+  } else {
+    roomsComponents[roomId] = compArr.filter(c => c.component.name !== componentName);
+    inputQty.disabled = true;
+  }
+  updateSummary();
+  saveToLocalStorage();
+}
+
+function changeQtyFromRoom(roomId, componentName, value) {
+  if (!roomsComponents[roomId]) return;
+  const compArr = roomsComponents[roomId];
+  let found = compArr.find(c => c.component.name === componentName);
+  if (found) {
+    found.qty = parseInt(value) || 1;
+    updateSummary();
+    saveToLocalStorage();
+  }
+}
+
+
+
 // --- KOMPONENTY I ILOŚCI ---
 
 function toggleComponents(roomId) {
   const list = document.getElementById(`components-list-${roomId}`);
+  const section = document.getElementById(`room-section-${roomId}`);
   if (!list.innerHTML) {
     const room = rooms.find(r => r.id === roomId);
     list.innerHTML = config.components[room.type].map(comp => {
@@ -215,8 +311,9 @@ function toggleComponents(roomId) {
     }).join('');
   }
   list.classList.toggle('hidden');
-  document.getElementById(`room-section-${roomId}`).classList.toggle('active');
+  section.classList.toggle('active');
 }
+
 
 function selectComponent(roomId, componentName, checked) {
   if (!roomsComponents[roomId]) roomsComponents[roomId] = [];
@@ -265,42 +362,28 @@ function findQtyInput(roomId, componentName) {
 // --- PODSUMOWANIE I PRZYCISK DALEJ ---
 
 function updateSummary() {
-  const summaryDiv = document.getElementById('summary');
-  let total = 0;
-  let html = `<h3>Podsumowanie konfiguracji</h3>
-    <p><b>Etap budowy:</b> ${selectedStage ? selectedStage.charAt(0).toUpperCase() + selectedStage.slice(1) : ''}</p>
-    <p><b>Seria:</b> ${selectedSeries ? selectedSeries : ''} &nbsp; <b>Typ ramki:</b> ${selectedFrameType ? selectedFrameType : ''}</p>`;
-  rooms.forEach(room => {
-    const comps = roomsComponents[room.id] || [];
-    if (comps.length) {
-      html += `<div style="margin: 10px 0 10px 20px;">
-        <b>${room.type.charAt(0).toUpperCase() + room.type.slice(1)}:</b>
-        <ul>
-          ${comps.map(c => {
-            const sum = c.qty * c.component.price[selectedStage];
-            total += sum;
-            return `<li>${c.component.name} – ${c.qty} szt. x ${c.component.price[selectedStage]} zł = <b>${sum} zł</b></li>`;
-          }).join('')}
-        </ul>
-      </div>`;
-    }
-  });
-  html += `<div style="margin:20px 0 0 20px;"><b>SUMA: ${total} zł</b></div>`;
-  summaryDiv.innerHTML = html;
+  // Aktywuj przycisk "Dalej" tylko, jeśli w którymkolwiek pomieszczeniu wybrano przynajmniej jeden komponent
   document.getElementById('nextBtn').disabled = !Object.values(roomsComponents).some(arr => arr.length > 0);
 }
 
 // --- USŁUGI DODATKOWE I EKRAN KOŃCOWY ---
 
 function goToServices() {
-  const wantsServices = confirm("Czy chcesz wybrać usługi dodatkowe?");
+  // Ukryj krok 2, pokaż modal
   document.getElementById('step2').classList.add('hidden');
-  if (wantsServices) {
+  document.getElementById('servicesModal').classList.remove('hidden');
+
+  // Obsługa przycisków
+  document.getElementById('modalYesBtn').onclick = function() {
+    document.getElementById('servicesModal').classList.add('hidden');
     document.getElementById('stepServices').classList.remove('hidden');
-  } else {
+  };
+  document.getElementById('modalNoBtn').onclick = function() {
+    document.getElementById('servicesModal').classList.add('hidden');
     goToSummary();
-  }
+  };
 }
+
 
 function goToSummary() {
   selectedServices = [];
@@ -318,13 +401,37 @@ function goToSummary() {
 }
 
 function renderFinalSummary() {
-  let html = `<h4>Wybrane usługi dodatkowe:</h4>`;
+  let html = `<h3>Podsumowanie konfiguracji</h3>`;
+  html += `<p><b>Etap budowy:</b> ${selectedStage ? selectedStage.charAt(0).toUpperCase() + selectedStage.slice(1) : ''}</p>`;
+  html += `<p><b>Seria:</b> ${selectedSeries ? selectedSeries : ''} &nbsp; <b>Typ ramki:</b> ${selectedFrameType ? selectedFrameType : ''}</p>`;
+
+  // Usługi dodatkowe
+  html += `<h4>Wybrane usługi dodatkowe:</h4>`;
   if (selectedServices.length > 0) {
     html += `<ul>${selectedServices.map(s => `<li>${s}</li>`).join('')}</ul>`;
   } else {
     html += `<p>Brak usług dodatkowych.</p>`;
   }
-  html += document.getElementById('summary').innerHTML;
+
+  // Szczegóły pomieszczeń i komponentów
+  let total = 0;
+  rooms.forEach(room => {
+    const comps = roomsComponents[room.id] || [];
+    if (comps.length) {
+      html += `<div style="margin: 10px 0 10px 20px;">
+        <b>${room.type.charAt(0).toUpperCase() + room.type.slice(1)}:</b>
+        <ul>
+          ${comps.map(c => {
+            const sum = c.qty * c.component.price[selectedStage];
+            total += sum;
+            return `<li>${c.component.name} – ${c.qty} szt. x ${c.component.price[selectedStage]} zł = <b>${sum} zł</b></li>`;
+          }).join('')}
+        </ul>
+      </div>`;
+    }
+  });
+  html += `<div style="margin:20px 0 0 20px;"><b>SUMA: ${total} zł</b></div>`;
+
   document.getElementById('finalSummary').innerHTML = html;
 }
 
@@ -332,7 +439,12 @@ function renderFinalSummary() {
 
 window.onload = function() {
   loadFromLocalStorage();
-
+  document.getElementById('backToRoomsBtn').onclick = function() {
+    document.getElementById('roomComponentSelect').classList.add('hidden');
+    document.getElementById('step2').classList.remove('hidden');
+    renderRoomsForComponents();
+  };
+  
   if (selectedStage) {
     document.querySelectorAll('.stage-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.stage === selectedStage);
@@ -438,5 +550,37 @@ function downloadFinalPDF() {
   };
 
   pdfMake.createPdf(docDefinition).download('podsumowanie-konfiguracji.pdf');
+}
+function openRoomComponentSelect(roomId) {
+  // Ukryj widok listy pokoi, pokaż widok wyboru komponentów
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('roomComponentSelect').classList.remove('hidden');
+
+  const room = rooms.find(r => r.id === roomId);
+  document.getElementById('roomComponentHeader').innerText =
+    `Wybierz elementy dla: ${room.type.charAt(0).toUpperCase() + room.type.slice(1)}`;
+
+  // Renderuj listę komponentów
+  const compListDiv = document.getElementById('roomComponentsList');
+  compListDiv.innerHTML = config.components[room.type].map(comp => {
+    let qty = 0;
+    if (roomsComponents[roomId]) {
+      const found = roomsComponents[roomId].find(c => c.component.name === comp.name);
+      if (found) qty = found.qty;
+    }
+    return `
+      <label style="display:block; margin-bottom:8px;">
+        <input type="checkbox" onchange="selectComponentFromRoom(${roomId}, '${comp.name}', this.checked)" ${qty > 0 ? 'checked' : ''}>
+        ${comp.name} <span style="color:#888;">(${comp.price[selectedStage]} zł/szt.)</span>
+        <input type="number" min="1" max="99" value="${qty > 0 ? qty : 1}"
+          style="width:50px; margin-left:10px;" 
+          ${qty > 0 ? '' : 'disabled'}
+          onchange="changeQtyFromRoom(${roomId}, '${comp.name}', this.value)">
+        szt.
+      </label>
+    `;
+  }).join('');
+  // Zapamiętaj, który pokój jest edytowany (jeśli potrzebne)
+  window.currentRoomEditId = roomId;
 }
 

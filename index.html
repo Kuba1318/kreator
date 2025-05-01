@@ -28,6 +28,57 @@
     .hidden { display: none; }
     #resetBtn { background: #e74c3c; margin-top: 20px; }
     #backBtn { background: #3498db; margin-bottom: 20px; }
+    .modal {
+  position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(44,62,80,0.35); display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: #fff; padding: 30px 40px; border-radius: 12px; box-shadow: 0 0 24px #bbb;
+  min-width: 300px; max-width: 90vw;
+}
+.modal.hidden { display: none; }
+#roomsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  justify-content: center;
+}
+
+.room-image-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 220px; /* szerokość kafelka */
+  margin-bottom: 16px;
+}
+
+.room-photo {
+  width: 100%;
+  height: 160px;
+  object-fit: cover; /* proporcjonalne rozciągnięcie */
+  border-radius: 16px;
+  filter: drop-shadow(0 6px 18px rgba(44,62,80,0.18)); /* cień pod obrazem */
+  transition: filter 0.2s, transform 0.2s;
+  cursor: pointer;
+  background: #f7f7f7;
+}
+
+.room-photo:hover {
+  filter: drop-shadow(0 10px 24px rgba(44,62,80,0.28));
+  transform: scale(1.03);
+}
+
+.room-label {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 1.1em;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+
+
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js"></script>
@@ -51,10 +102,10 @@
         <label style="margin-right:10px;">
           Wybierz serię:
           <select id="seriesSelect" onchange="selectSeries(this.value)">
-            <option value="">-- wybierz serię --</option>
-            <option value="Seria A">Seria A</option>
-            <option value="Seria B">Seria B</option>
-            <option value="Seria C">Seria C</option>
+            <option value="">-- wybierz serię łączników --</option>
+            <option value="Seria A">SONATA</option>
+            <option value="Seria B">ARIA</option>
+            <option value="Seria C">AS</option>
             
 
           </select>
@@ -79,9 +130,14 @@
       <button id="backBtn" onclick="goToStep1()">⬅ Powrót do dodawania pomieszczeń</button>
       <h2>Wybierz komponenty dla pomieszczeń</h2>
       <div id="roomsContainer"></div>
-      <div id="summary"></div>
       <button id="nextBtn" onclick="goToServices()" disabled>Dalej</button>
       <button id="resetBtn" onclick="resetConfigurator()">Resetuj konfigurator</button>
+    </div>
+
+    <div id="roomComponentSelect" class="hidden">
+      <button id="backToRoomsBtn">⬅ Powrót do wyboru pokoi</button>
+      <h2 id="roomComponentHeader"></h2>
+      <div id="roomComponentsList"></div>
     </div>
     <!-- Usługi dodatkowe -->
 <div id="stepServices" class="hidden">
@@ -104,5 +160,16 @@
 </div>
 
   </div>
+  <!-- MODAL: Usługi dodatkowe -->
+<div id="servicesModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Czy chcesz wybrać usługi dodatkowe?</h3>
+    <div style="margin-top:20px; text-align:right;">
+      <button id="modalYesBtn">Tak</button>
+      <button id="modalNoBtn" style="background:#e74c3c;">Nie</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
