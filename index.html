@@ -3,83 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Konfigurator</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; background: #f0f8ff; }
-    .container { background: white; padding: 30px; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 0 15px #ddd; }
-    h1 { text-align: center; color: #2c3e50; }
-    .stage-buttons { margin: 20px 0; text-align: center; }
-    .stage-btn { 
-      padding: 12px 25px; margin: 0 10px; border: none; border-radius: 25px; 
-      cursor: pointer; background: #3498db; color: white; 
-    }
-    .stage-btn.active { background: #2980b9; }
-    #globalOptions { margin-bottom: 20px; text-align: center; }
-    #roomControls { margin: 20px 0; }
-    #roomList { margin: 10px 0 20px 0; }
-    .room-item { display: flex; align-items: center; margin-bottom: 8px; }
-    .room-item select { margin-right: 10px; }
-    .room-item button { background: #e74c3c; margin-left: 10px; }
-    #proceedBtn { margin: 20px 0; }
-    .room-section { border: 2px solid #3498db; padding: 15px; margin: 15px 0; border-radius: 10px; cursor: pointer; background: #f7fbff; }
-    .room-section.active { background: #eaf6ff; }
-    .components-list { margin-top: 10px; }
-    button { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    button:disabled { background: #95a5a6; }
-    .hidden { display: none; }
-    #resetBtn { background: #e74c3c; margin-top: 20px; }
-    #backBtn { background: #3498db; margin-bottom: 20px; }
-    .modal {
-  position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
-  background: rgba(44,62,80,0.35); display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-}
-.modal-content {
-  background: #fff; padding: 30px 40px; border-radius: 12px; box-shadow: 0 0 24px #bbb;
-  min-width: 300px; max-width: 90vw;
-}
-.modal.hidden { display: none; }
-#roomsContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 32px;
-  justify-content: center;
-}
-
-.room-image-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 220px; /* szerokość kafelka */
-  margin-bottom: 16px;
-}
-
-.room-photo {
-  width: 100%;
-  height: 160px;
-  object-fit: cover; /* proporcjonalne rozciągnięcie */
-  border-radius: 16px;
-  filter: drop-shadow(0 6px 18px rgba(44,62,80,0.18)); /* cień pod obrazem */
-  transition: filter 0.2s, transform 0.2s;
-  cursor: pointer;
-  background: #f7f7f7;
-}
-
-.room-photo:hover {
-  filter: drop-shadow(0 10px 24px rgba(44,62,80,0.28));
-  transform: scale(1.03);
-}
-
-.room-label {
-  margin-top: 10px;
-  text-align: center;
-  font-size: 1.1em;
-  font-weight: 500;
-  color: #2c3e50;
-}
-
-
-
-  </style>
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js"></script>
   <script src="configurator.js"></script>
@@ -90,27 +14,27 @@
 <body>
   <div class="container">
     <h1>Konfigurator</h1>
-    
-    <!-- Etap 1: Wybór etapu, serii, ramki i pomieszczeń -->
+
     <div id="step1">
       <div class="stage-buttons">
         <button class="stage-btn" data-stage="budowa" onclick="selectStage('budowa')">Budowa</button>
         <button class="stage-btn" data-stage="deweloperski" onclick="selectStage('deweloperski')">Stan Deweloperski</button>
         <button class="stage-btn" data-stage="wykończone" onclick="selectStage('wykończone')">Mieszkanie Wykończone</button>
       </div>
+      
       <div id="globalOptions">
-        <label style="margin-right:10px;">
+        <label>
           Wybierz serię:
           <select id="seriesSelect" onchange="selectSeries(this.value)">
             <option value="">-- wybierz serię łączników --</option>
-            <option value="Seria A">SONATA</option>
-            <option value="Seria B">ARIA</option>
-            <option value="Seria C">AS</option>
+            <option value="SONATA">SONATA</option>
+            <option value="ARIA">ARIA</option>
+            <option value="AS">AS</option>
             
 
           </select>
         </label>
-        <label style="margin-left:20px;">
+        <label style="margin-left: 20px;">
           Wybierz typ ramki:
           <select id="frameTypeSelect" onchange="selectFrameType(this.value)">
             <option value="">-- wybierz typ ramki --</option>
@@ -121,24 +45,29 @@
       <div id="roomControls">
         <button onclick="addRoom()">➕ Dodaj Pomieszczenie</button>
       </div>
-      <div id="roomList"></div>
+      <div class="rooms">
+      <div id="roomList""></div></div>
+      <div class="next">
       <button id="proceedBtn" onclick="goToStep2()" disabled>Przejdź do wyboru komponentów</button>
+      </div>
     </div>
-
+    <div class="container">
     <!-- Etap 2: Wybór komponentów -->
     <div id="step2" class="hidden">
-      <button id="backBtn" onclick="goToStep1()">⬅ Powrót do dodawania pomieszczeń</button>
+      <button id="backBtn" onclick="goToStep1()">⬅ Powrót</button>
       <h2>Wybierz komponenty dla pomieszczeń</h2>
       <div id="roomsContainer"></div>
-      <button id="nextBtn" onclick="goToServices()" disabled>Dalej</button>
-      <button id="resetBtn" onclick="resetConfigurator()">Resetuj konfigurator</button>
+      <div class="next"><button id="nextBtn" onclick="goToServices()" disabled>Dalej</button><br>
+      <button id="resetBtn" onclick="resetConfigurator()">Resetuj konfigurator</button></div>
     </div>
 
     <div id="roomComponentSelect" class="hidden">
-      <button id="backToRoomsBtn">⬅ Powrót do wyboru pokoi</button>
       <h2 id="roomComponentHeader"></h2>
-      <div id="roomComponentsList"></div>
+      <div class="lista"><div id="roomComponentsList"></div></div>
+      <div class="btn4"><button id="backToRoomsBtn">Wybierz kolejny pokój</button></div>
+
     </div>
+  </div>
     <!-- Usługi dodatkowe -->
 <div id="stepServices" class="hidden">
   <h2>Wybierz usługi dodatkowe</h2>
@@ -154,9 +83,10 @@
 <div id="stepEnd" class="hidden">
   <h2>Podsumowanie końcowe</h2>
   <div id="finalSummary"></div>
-  <button onclick="resetConfigurator()">Zakończ i wyczyść konfigurator</button>
+  <div class="btna">
+  <button id="reset" onclick="resetConfigurator()">Zakończ i wyczyść konfigurator</button>
   <button id="finalPdfBtn" onclick="downloadFinalPDF()">Pobierz PDF z podsumowaniem</button>
-  <button onclick="goToStep1()">Powrót do konfiguratora</button>
+  <button id="back" onclick="goToStep1()">Powrót do konfiguratora</button></div>
 </div>
 
   </div>

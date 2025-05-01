@@ -1,10 +1,10 @@
 const config = {
   stages: ['budowa', 'deweloperski', 'wykończone'],
-  series: ['Seria A', 'Seria B', 'Seria C'],
+  series: ['SONATA', 'ARIA', 'AS'],
   seriesFrameTypes: {
-    'Seria A': ['Ramka 1', 'Ramka 2'],
-    'Seria B': ['Ramka 2', 'Ramka 3'],
-    'Seria C': ['Ramka 1', 'Ramka 3']
+    'SONATA': ['Ramka 1', 'Ramka 2'],
+    'ARIA': ['Ramka 2', 'Ramka 3'],
+    'AS': ['Ramka 1', 'Ramka 3']
   },
   rooms: ['salon', 'sypialnia', 'kuchnia', 'łazienka', 'korytarz', 'jadalnia'],
   components: {
@@ -584,4 +584,5 @@ function openRoomComponentSelect(roomId) {
   // Zapamiętaj, który pokój jest edytowany (jeśli potrzebne)
   window.currentRoomEditId = roomId;
 }
+
 
