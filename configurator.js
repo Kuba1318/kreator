@@ -382,42 +382,31 @@ function resetConfigurator() {
 // --- GENEROWANIE PDF Z POLSKIMI ZNAKAMI ---
 
 function downloadFinalPDF() {
-  if (typeof jsPDF === 'undefined') {
-    alert('jsPDF nie został załadowany!');
+  // Sprawdź, czy PDFMake jest załadowany
+  if (typeof pdfMake === 'undefined') {
+    alert('PDFMake nie został załadowany!');
     return;
   }
-  var doc = new jsPDF();
-  // NIE używaj addFileToVFS ani addFont – robi to plik Roboto-Regular-normal.js automatycznie!
-  doc.setFont('Roboto-Regular-normal.ttf', 'Roboto-Regular', 'normal'); // dokładnie jak w pliku fontu!
-  doc.setFontSize(14);
 
-  let y = 15;
-  doc.text("Podsumowanie konfiguracji", 10, y);
-  y += 10;
-  doc.setFontSize(12);
-  doc.text(`Etap budowy: ${selectedStage}`, 10, y);
-  y += 8;
-  doc.text(`Seria: ${selectedSeries}`, 10, y);
-  y += 8;
-  doc.text(`Typ ramki: ${selectedFrameType}`, 10, y);
-  y += 12;
+  // Budowanie zawartości dokumentu
+  const content = [];
+
+  content.push({ text: "Podsumowanie konfiguracji", fontSize: 14, bold: true, margin: [0, 0, 0, 10] });
+  content.push({ text: `Etap budowy: ${selectedStage}`, fontSize: 12 });
+  content.push({ text: `Seria: ${selectedSeries}`, fontSize: 12 });
+  content.push({ text: `Typ ramki: ${selectedFrameType}`, fontSize: 12, margin: [0, 0, 0, 12] });
 
   // Usługi dodatkowe
   if (typeof selectedServices !== 'undefined') {
-    doc.setFont(undefined, 'bold');
-    doc.text("Usługi dodatkowe:", 10, y);
-    doc.setFont(undefined, 'normal');
-    y += 7;
+    content.push({ text: "Usługi dodatkowe:", bold: true, margin: [0, 0, 0, 5] });
     if (selectedServices.length > 0) {
       selectedServices.forEach(service => {
-        doc.text(`- ${service}`, 14, y);
-        y += 7;
+        content.push({ text: `- ${service}`, margin: [10, 0, 0, 0] });
       });
     } else {
-      doc.text("Brak usług dodatkowych.", 14, y);
-      y += 7;
+      content.push({ text: "Brak usług dodatkowych.", margin: [10, 0, 0, 0] });
     }
-    y += 5;
+    content.push({ text: '', margin: [0, 0, 0, 5] }); // odstęp
   }
 
   // Pomieszczenia i komponenty
@@ -425,27 +414,29 @@ function downloadFinalPDF() {
   rooms.forEach(room => {
     const comps = roomsComponents[room.id] || [];
     if (comps.length) {
-      if (y > 260) { doc.addPage(); y = 15; }
-      doc.setFont(undefined, 'bold');
-      doc.text(`${room.type.charAt(0).toUpperCase() + room.type.slice(1)}:`, 10, y);
-      doc.setFont(undefined, 'normal');
-      y += 7;
+      content.push({ text: `${room.type.charAt(0).toUpperCase() + room.type.slice(1)}:`, bold: true, margin: [0, 8, 0, 2] });
       comps.forEach(c => {
         const sum = c.qty * c.component.price[selectedStage];
-        doc.text(
-          `${c.component.name} – ${c.qty} szt. x ${c.component.price[selectedStage]} zł = ${sum} zł`,
-          14, y
-        );
-        y += 7;
+        content.push({
+          text: `${c.component.name} – ${c.qty} szt. x ${c.component.price[selectedStage]} zł = ${sum} zł`,
+          margin: [10, 0, 0, 0]
+        });
         total += sum;
-        if (y > 280) { doc.addPage(); y = 15; }
       });
-      y += 3;
     }
   });
 
-  doc.setFont(undefined, 'bold');
-  doc.text(`SUMA: ${total} zł`, 10, y + 5);
+  content.push({ text: '', margin: [0, 0, 0, 5] }); // odstęp
+  content.push({ text: `SUMA: ${total} zł`, bold: true, margin: [0, 10, 0, 0] });
 
-  doc.save(`podsumowanie-konfiguracji.pdf`);
+  // Definicja dokumentu PDFMake
+  const docDefinition = {
+    content,
+    defaultStyle: {
+      font: 'Roboto'
+    }
+  };
+
+  pdfMake.createPdf(docDefinition).download('podsumowanie-konfiguracji.pdf');
 }
+
