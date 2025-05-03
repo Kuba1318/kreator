@@ -5,9 +5,10 @@ body {
   line-height: 1.6;
   margin: 0;
   padding: 40px;
-  background: #dee6ec;;
+  background: #dee6ec;
   color: #2c3e50;
 }
+
 .container {
   max-width: 800px;
   margin: 0 auto;
@@ -16,35 +17,27 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.1);
 }
-.rooms{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
+.selectimage{
+  display: flex;
+  justify-content: center;
 }
-.next{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
+#seriesImage{
+  width: 30%;
+  height: 30%;
+  
 }
-
-
+#frameImage{
+  width: 30%;
+  height: 30%;
+  
+}
 #roomControls{
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  margin-top: 20px;
 }
-#roomlist{
+#globalOptions{
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  margin-top: 20px;
 }
 h1, h2, h3 {
   color: #1e2d3a;
@@ -53,11 +46,10 @@ h1, h2, h3 {
 }
 
 h1 {
-  text-align: center;
   font-size: 2.2em;
 }
 
-/* Etap przyciski */
+/* Przyciski etapów */
 .stage-buttons {
   text-align: center;
   margin: 30px 0;
@@ -80,51 +72,7 @@ h1 {
   background: #2c80b4;
 }
 
-#globalOptions {
-  text-align: center;
-  margin-bottom: 24px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-}
-
-
-#frameTypeSelect {
-  width: 100%;
-  padding: 8px;
-  font-size: 1em;
-  border-radius: 6px;
-  border: 1px solid #bdc3c7;
-}
-#seriesSelect {
-  width: 100%;
-  padding: 8px;
-  font-size: 1em;
-  border-radius: 6px;
-  border: 1px solid #bdc3c7;
-}
-.room-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-
-.room-item select {
-  padding: 6px 12px;
-  font-size: 0.95em;
-}
-
-.room-item button {
-  background: #e74c3c;
-  border: none;
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-/* Przyciski główne */
+/* Przyciski nawigacyjne */
 button {
   padding: 12px 24px;
   background: #27ae60;
@@ -145,34 +93,54 @@ button:disabled {
   cursor: not-allowed;
 }
 
-#resetBtn {
+.back-btn {
+  background: #2980b9;
+  margin-bottom: 24px;
+}
+
+/* Sekcje */
+.step {
+  display: block;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Pomieszczenia */
+.rooms {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px; 
+}
+
+.room-item {
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.room-item select {
+  padding: 6px 12px;
+  font-size: 0.95em;
+  width: 200px;
+}
+
+.room-item button {
   background: #e74c3c;
 }
 
-#backBtn{
-  background: #2980b9;
-  margin-bottom: 24px;
-  justify-content: center;
-    display: flex;
-    align-items: center;
-}
-#backToRoomsBtn{
-  background: #2980b9;
-  margin-bottom: 24px;
-  align-items: center;
-}
-.btn4{
-  justify-content: center;
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
-}
-/* Sekcja pokoi */
+/* Komponenty */
 #roomsContainer {
   display: flex;
   flex-wrap: wrap;
   gap: 32px;
   justify-content: center;
+  margin-top: 20px;
 }
 
 .room-image-section {
@@ -202,92 +170,55 @@ button:disabled {
   color: #34495e;
 }
 
-/* Modal */
-.modal {
-  position: fixed;
-  inset: 0;
+/* Lista komponentów */
+.lista {
+  width: 100%;
+  padding: 8px;
+  font-size: 1em;
+  border-radius: 6px;
+  border: 1px solid #bdc3c7;
+  text-align: left;
+  margin: 20px 0;
+}
+
+.lista label {
+  display: block;
+  margin-bottom: 12px;
+}
+
+/* Przyciski akcji */
+.next {
   display: flex;
   justify-content: center;
-  align-items: center;
-  background: rgba(0,0,0,0.4);
-  z-index: 1000;
-}
-.lista{
-    width: 100%;
-    padding: 8px;
-    font-size: 1em;
-    border-radius: 6px;
-    border: 1px solid #bdc3c7;
-    text-align: center;
-}
-.modal-content {
-  background: #fff;
-  padding: 36px;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-  text-align: center;
-  max-width: 400px;
+  margin-top: 30px;
 }
 
-.modal.hidden {
-  display: none;
-}
-
-/* Ukryte sekcje */
-.hidden {
-  display: none;
-}
-
-/* Komponenty */
-label {
+.btna {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-  font-size: 0.95em;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
 }
 
-input[type="number"] {
-  width: 60px;
-  padding: 4px 6px;
-  font-size: 1em;
-}
-
-/* Mobile tweaks */
+/* Responsywność */
 @media (max-width: 768px) {
-  .container {
+  body {
     padding: 20px;
   }
-
+  
   .stage-btn {
-    margin: 5px;
+    display: block;
     width: 100%;
+    margin: 5px 0;
   }
-
-  .room-image-section {
-    width: 100%;
-  }
-
-  label {
+  
+  .room-item {
     flex-direction: column;
     align-items: flex-start;
   }
-}
-
-.end{
-    display: flex;
+  
+  .btna {
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
-}
-.btna{
-    display: flex;
-    margin-top: 20px;
-}
-#reset{
-    margin-right: 20px;
-}
-#back{
-    margin-left: 20px;
+    gap: 10px;
+  }
 }

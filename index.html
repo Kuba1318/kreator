@@ -7,20 +7,28 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js"></script>
   <script src="configurator.js"></script>
-  
-  
-  
 </head>
 <body>
   <div class="container">
     <h1>Konfigurator</h1>
 
-    <div id="step1">
+    <!-- Krok 1: Wybór etapu budowy -->
+    <div id="step1" class="step">
+      <h2>Wybór etapu budowy</h2>
       <div class="stage-buttons">
         <button class="stage-btn" data-stage="budowa" onclick="selectStage('budowa')">Budowa</button>
         <button class="stage-btn" data-stage="deweloperski" onclick="selectStage('deweloperski')">Stan Deweloperski</button>
         <button class="stage-btn" data-stage="wykończone" onclick="selectStage('wykończone')">Mieszkanie Wykończone</button>
       </div>
+      <div class="next">
+        <button id="nextStep1Btn" onclick="goToStep2()" disabled>Dalej</button>
+      </div>
+    </div>
+
+    <!-- Krok 2: Wybór serii i ramki -->
+    <div id="step2" class="step hidden">
+      <h2>Wybór serii i ramki</h2>
+      <button class="back-btn" onclick="goBackToStep(1)">⬅ Powrót</button>
       
       <div id="globalOptions">
         <label>
@@ -30,76 +38,91 @@
             <option value="SONATA">SONATA</option>
             <option value="ARIA">ARIA</option>
             <option value="AS">AS</option>
-            
-
           </select>
         </label>
         <label style="margin-left: 20px;">
           Wybierz typ ramki:
           <select id="frameTypeSelect" onchange="selectFrameType(this.value)">
             <option value="">-- wybierz typ ramki --</option>
-            <!-- Opcje generowane dynamicznie -->
           </select>
         </label>
       </div>
+      
+      <div class="selectimage">
+        <div id="seriesImage"></div>
+        <div id="frameImage"></div>
+      </div>
+      
+      <div class="next">
+        <button id="nextStep2Btn" onclick="goToStep3()" disabled>Dalej</button>
+      </div>
+    </div>
+
+    <!-- Krok 3: Dodawanie pomieszczeń -->
+    <div id="step3" class="step hidden">
+      <h2>Dodawanie pomieszczeń</h2>
+      <button class="back-btn" onclick="goBackToStep(2)">⬅ Powrót</button>
+      
       <div id="roomControls">
         <button onclick="addRoom()">➕ Dodaj Pomieszczenie</button>
       </div>
       <div class="rooms">
-      <div id="roomList""></div></div>
+        <div id="roomList"></div>
+      </div>
       <div class="next">
-      <button id="proceedBtn" onclick="goToStep2()" disabled>Przejdź do wyboru komponentów</button>
+        <button id="nextStep3Btn" onclick="goToStep4()" disabled>Dalej</button>
       </div>
     </div>
-    <div class="container">
-    <!-- Etap 2: Wybór komponentów -->
-    <div id="step2" class="hidden">
-      <button id="backBtn" onclick="goToStep1()">⬅ Powrót</button>
-      <h2>Wybierz komponenty dla pomieszczeń</h2>
+
+    <!-- Krok 4: Wybór komponentów -->
+    <div id="step4" class="step hidden">
+      <h2>Wybór komponentów</h2>
+      <button class="back-btn" onclick="goBackToStep(3)">⬅ Powrót</button>
+      
+      <p>Kliknij na pomieszczenie, aby wybrać komponenty:</p>
       <div id="roomsContainer"></div>
-      <div class="next"><button id="nextBtn" onclick="goToServices()" disabled>Dalej</button><br>
-      <button id="resetBtn" onclick="resetConfigurator()">Resetuj konfigurator</button></div>
+      <div class="next">
+        <button id="nextStep4Btn" onclick="goToStep5()" disabled>Dalej</button>
+      </div>
     </div>
 
+    <!-- Widok wyboru komponentów dla konkretnego pokoju -->
     <div id="roomComponentSelect" class="hidden">
       <h2 id="roomComponentHeader"></h2>
-      <div class="lista"><div id="roomComponentsList"></div></div>
-      <div class="btn4"><button id="backToRoomsBtn">Wybierz kolejny pokój</button></div>
+      <div class="lista">
+        <div id="roomComponentsList"></div>
+      </div>
+      <div class="btn4">
+        <button id="backToRoomsBtn">Wybierz kolejny pokój</button>
+      </div>
+    </div>
 
+    <!-- Krok 5: Usługi dodatkowe -->
+    <div id="step5" class="step hidden">
+      <h2>Usługi dodatkowe</h2>
+      <button class="back-btn" onclick="goBackToStep(4)">⬅ Powrót</button>
+      
+      <form id="servicesForm">
+        <label><input type="checkbox" name="services" value="Montaż"> Montaż (200 zł)</label><br>
+        <label><input type="checkbox" name="services" value="Konfiguracja"> Konfiguracja (150 zł)</label><br>
+        <label><input type="checkbox" name="services" value="Szkolenie"> Szkolenie (100 zł)</label><br>
+      </form>
+      <div class="next">
+        <button onclick="goToStep6()">Dalej</button>
+      </div>
+    </div>
+
+    <!-- Krok 6: Podsumowanie -->
+    <div id="step6" class="step hidden">
+      <h2>Podsumowanie</h2>
+      <button class="back-btn" onclick="goBackToStep(5)">⬅ Powrót</button>
+      
+      <div id="finalSummary"></div>
+      <div class="btna">
+        <button id="reset" onclick="resetConfigurator()">Zakończ i wyczyść konfigurator</button>
+        <button id="finalPdfBtn" onclick="downloadFinalPDF()">Pobierz PDF z podsumowaniem</button>
+      </div>
     </div>
   </div>
-    <!-- Usługi dodatkowe -->
-<div id="stepServices" class="hidden">
-  <h2>Wybierz usługi dodatkowe</h2>
-  <form id="servicesForm">
-    <label><input type="checkbox" name="services" value="Montaż"> Montaż</label><br>
-    <label><input type="checkbox" name="services" value="Konfiguracja"> Konfiguracja</label><br>
-    <label><input type="checkbox" name="services" value="Szkolenie"> Szkolenie</label><br>
-  </form>
-  <button onclick="goToSummary()">Dalej</button>
-</div>
-
-<!-- Ekran końcowy -->
-<div id="stepEnd" class="hidden">
-  <h2>Podsumowanie końcowe</h2>
-  <div id="finalSummary"></div>
-  <div class="btna">
-  <button id="reset" onclick="resetConfigurator()">Zakończ i wyczyść konfigurator</button>
-  <button id="finalPdfBtn" onclick="downloadFinalPDF()">Pobierz PDF z podsumowaniem</button>
-  <button id="back" onclick="goToStep1()">Powrót do konfiguratora</button></div>
-</div>
-
-  </div>
-  <!-- MODAL: Usługi dodatkowe -->
-<div id="servicesModal" class="modal hidden">
-  <div class="modal-content">
-    <h3>Czy chcesz wybrać usługi dodatkowe?</h3>
-    <div style="margin-top:20px; text-align:right;">
-      <button id="modalYesBtn">Tak</button>
-      <button id="modalNoBtn" style="background:#e74c3c;">Nie</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
